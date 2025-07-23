@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Label Roll Mockup Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .controls {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .preview {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .size-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .label-roll {
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .roll-container {
+            position: relative;
+            transform: rotateX(-15deg) rotateY(25deg);
+            transition: all 0.3s ease;
+        }
+
+        .roll-base {
+            position: relative;
+            border-radius: 50%;
+            background: 
+                radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.8) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(0,0,0,0.1) 0%, transparent 50%),
+                linear-gradient(145deg, #f8f8f0 0%, #e8e8e0 25%, #d8d8d0 50%, #c8c8c0 75%, #b8b8b0 100%);
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.25),
+                0 10px 20px rgba(0,0,0,0.15),
+                inset 0 3px 15px rgba(255,255,255,0.9),
+                inset 0 -3px 15px rgba(0,0,0,0.15),
+                inset 2px 2px 10px rgba(255,255,255,0.6),
+                inset -2px -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .roll-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: 
+                radial-gradient(ellipse at 25% 25%, rgba(160,82,45,0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 75% 75%, rgba(0,0,0,0.4) 0%, transparent 50%),
+                linear-gradient(145deg, #d2691e 0%, #8b4513 25%, #654321 50%, #4a2c17 75%, #3d1f0f 100%);
+            box-shadow: 
+                inset 0 3px 12px rgba(0,0,0,0.5),
+                inset 0 -3px 12px rgba(255,255,255,0.15),
+                inset 2px 2px 8px rgba(0,0,0,0.3),
+                inset -2px -2px 8px rgba(255,255,255,0.1),
+                0 0 20px rgba(0,0,0,0.4),
+                0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .labels-stack {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .label-layer {
+            position: absolute;
+            background: 
+                linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,248,248,0.9) 50%, rgba(255,255,255,0.95) 100%),
+                linear-gradient(90deg, rgba(245,245,245,0.8) 0%, rgba(255,255,255,0.9) 50%, rgba(245,245,245,0.8) 100%);
+            border: 0.5px solid rgba(220,220,220,0.4);
+            border-radius: 1px;
+            box-shadow: 
+                0 1px 4px rgba(0,0,0,0.12),
+                0 0.5px 2px rgba(0,0,0,0.08),
+                inset 0 0.5px 1px rgba(255,255,255,0.8),
+                inset 0 -0.5px 1px rgba(0,0,0,0.05);
+        }
+
+        .label-text {
+            display: none;
+        }
+
+        .roll-shadow {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%) skewX(-5deg);
+            width: 130%;
+            height: 50px;
+            background: 
+                radial-gradient(ellipse closest-side, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 40%, transparent 80%),
+                radial-gradient(ellipse at center, rgba(0,0,0,0.1) 0%, transparent 60%);
+            border-radius: 50%;
+            filter: blur(12px);
+        }
+
+        .labels-edge-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,0.3) 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(0,0,0,0.1) 0%, transparent 30%);
+            pointer-events: none;
+        }
+
+        .roll-depth-effect {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border-radius: 50%;
+            background: 
+                radial-gradient(ellipse at 25% 25%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                radial-gradient(ellipse at 75% 75%, rgba(0,0,0,0.15) 0%, transparent 40%);
+            pointer-events: none;
+        }
+
+        .info-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .controls {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .controls, .preview {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .size-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .preview {
+                padding: 15px;
+                min-height: 400px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <h1>Label Roll Generator</h1>
+            
+            <div class="form-group">
+                <label for="coreSize">Core Diameter</label>
+                <select id="coreSize">
+                    <option value="76">76mm (3")</option>
+                    <option value="40">40mm (1.57")</option>
+                    <option value="25.4">25.4mm (1")</option>
+                    <option value="19">19mm (0.75")</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Label Size (mm)</label>
+                <div class="size-inputs">
+                    <input type="number" id="labelWidth" placeholder="Width" value="100" min="10" max="500">
+                    <input type="number" id="labelHeight" placeholder="Height" value="170" min="10" max="500">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="labelQty">Labels per Roll</label>
+                <input type="number" id="labelQty" value="500" min="200" max="5000" step="50">
+            </div>
+
+            <div class="form-group">
+                <label for="outerDiameter">Outer Diameter (mm)</label>
+                <input type="number" id="outerDiameter" value="150" min="60" max="300" step="10">
+            </div>
+
+            <div class="info-display">
+                <div class="info-item">
+                    <span class="info-label">Roll Thickness:</span>
+                    <span class="info-value" id="thickness">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Total Length:</span>
+                    <span class="info-value" id="totalLength">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Label Area:</span>
+                    <span class="info-value" id="labelArea">--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="preview">
+            <div class="label-roll" id="labelRoll">
+                <div class="roll-container">
+                    <div class="roll-base" id="rollBase">
+                        <div class="roll-core" id="rollCore"></div>
+                        <div class="labels-stack" id="labelsStack"></div>
+                    </div>
+                    <div class="roll-shadow"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LabelRollGenerator {
+            constructor() {
+                this.elements = {
+                    coreSize: document.getElementById('coreSize'),
+                    labelWidth: document.getElementById('labelWidth'),
+                    labelHeight: document.getElementById('labelHeight'),
+                    labelQty: document.getElementById('labelQty'),
+                    outerDiameter: document.getElementById('outerDiameter'),
+                    rollBase: document.getElementById('rollBase'),
+                    rollCore: document.getElementById('rollCore'),
+                    labelsStack: document.getElementById('labelsStack'),
+                    thickness: document.getElementById('thickness'),
+                    totalLength: document.getElementById('totalLength'),
+                    labelArea: document.getElementById('labelArea')
+                };
+                
+                this.bindEvents();
+                this.updateRoll();
+            }
+
+            bindEvents() {
+                Object.values(this.elements).forEach(element => {
+                    if (element && element.addEventListener) {
+                        element.addEventListener('input', () => this.updateRoll());
+                        element.addEventListener('change', () => this.updateRoll());
+                    }
+                });
+            }
+
+            getValues() {
+                return {
+                    coreSize: parseFloat(this.elements.coreSize.value),
+                    labelWidth: parseFloat(this.elements.labelWidth.value) || 100,
+                    labelHeight: parseFloat(this.elements.labelHeight.value) || 170,
+                    labelQty: parseInt(this.elements.labelQty.value) || 500,
+                    outerDiameter: parseFloat(this.elements.outerDiameter.value) || 150
+                };
+            }
+
+            calculateDimensions(values) {
+                const labelThickness = 0.08;
+                const backingThickness = 0.06;
+                const totalThickness = labelThickness + backingThickness;
+                
+                const rollThickness = (values.outerDiameter - values.coreSize) / 2;
+                const circumference = Math.PI * (values.coreSize + rollThickness);
+                const totalLength = values.labelQty * Math.max(values.labelWidth, values.labelHeight);
+                const labelArea = (values.labelWidth * values.labelHeight * values.labelQty) / 10000;
+
+                return {
+                    rollThickness: rollThickness.toFixed(1),
+                    totalLength: (totalLength / 1000).toFixed(2),
+                    labelArea: labelArea.toFixed(2)
+                };
+            }
+
+            updateRoll() {
+                const values = this.getValues();
+                const calculations = this.calculateDimensions(values);
+                
+                this.updateDisplay(calculations);
+                this.renderRoll(values);
+            }
+
+            updateDisplay(calculations) {
+                this.elements.thickness.textContent = `${calculations.rollThickness}mm`;
+                this.elements.totalLength.textContent = `${calculations.totalLength}m`;
+                this.elements.labelArea.textContent = `${calculations.labelArea}m²`;
+            }
+
+            renderRoll(values) {
+                const scale = Math.min(400 / values.outerDiameter, 1.5);
+                const outerSize = values.outerDiameter * scale;
+                const coreSize = values.coreSize * scale;
+
+                this.elements.rollBase.style.width = `${outerSize}px`;
+                this.elements.rollBase.style.height = `${outerSize}px`;
+                
+                this.elements.rollCore.style.width = `${coreSize}px`;
+                this.elements.rollCore.style.height = `${coreSize}px`;
+
+                if (!this.elements.rollBase.querySelector('.labels-edge-highlight')) {
+                    const edgeHighlight = document.createElement('div');
+                    edgeHighlight.className = 'labels-edge-highlight';
+                    this.elements.rollBase.appendChild(edgeHighlight);
+                }
+
+                if (!this.elements.rollBase.querySelector('.roll-depth-effect')) {
+                    const depthEffect = document.createElement('div');
+                    depthEffect.className = 'roll-depth-effect';
+                    this.elements.rollBase.appendChild(depthEffect);
+                }
+
+                this.renderLabels(values, scale);
+            }
+
+            renderLabels(values, scale) {
+                this.elements.labelsStack.innerHTML = '';
+                
+                const maxVisibleLabels = Math.min(values.labelQty, 35);
+                const labelScaleW = Math.min((values.labelWidth / values.outerDiameter) * scale * 0.9, scale * 0.4);
+                const labelScaleH = Math.min((values.labelHeight / values.outerDiameter) * scale * 0.9, scale * 0.3);
+                
+                const layers = Math.ceil(maxVisibleLabels / 8);
+                
+                for (let layer = 0; layer < layers; layer++) {
+                    const labelsInLayer = Math.min(8, maxVisibleLabels - (layer * 8));
+                    const layerRadius = (values.outerDiameter * scale) / 2 - 15 - (layer * 4);
+                    
+                    for (let i = 0; i < labelsInLayer; i++) {
+                        const label = document.createElement('div');
+                        label.className = 'label-layer';
+                        
+                        const angle = (i / labelsInLayer) * 360 + (layer * 15);
+                        const jitter = (Math.random() - 0.5) * 8;
+                        const actualRadius = layerRadius + jitter;
+                        
+                        const x = Math.cos(angle * Math.PI / 180) * actualRadius;
+                        const y = Math.sin(angle * Math.PI / 180) * actualRadius;
+                        
+                        const labelWidth = Math.max(labelScaleW * 80, 18);
+                        const labelHeight = Math.max(labelScaleH * 80, 12);
+                        
+                        label.style.width = `${labelWidth}px`;
+                        label.style.height = `${labelHeight}px`;
+                        label.style.left = `50%`;
+                        label.style.top = `50%`;
+                        label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${angle + 90 + jitter}deg)`;
+                        label.style.opacity = Math.max(0.25, 0.9 - (layer * 0.15) - (i * 0.05));
+                        label.style.zIndex = 100 - (layer * 10) - i;
+
+                        const randomOffset = Math.random() * 0.1;
+                        label.style.filter = `brightness(${0.95 + randomOffset}) contrast(${1.05 + randomOffset})`;
+                        
+                        this.elements.labelsStack.appendChild(label);
+                    }
+                }
+
+                const centerLabels = Math.min(6, Math.floor(maxVisibleLabels * 0.1));
+                for (let i = 0; i < centerLabels; i++) {
+                    const label = document.createElement('div');
+                    label.className = 'label-layer';
+                    
+                    const angle = (i / centerLabels) * 360;
+                    const radius = (values.coreSize * scale) / 2 + 25 + (i * 3);
+                    
+                    const x = Math.cos(angle * Math.PI / 180) * radius;
+                    const y = Math.sin(angle * Math.PI / 180) * radius;
+                    
+                    label.style.width = `${Math.max(labelScaleW * 60, 15)}px`;
+                    label.style.height = `${Math.max(labelScaleH * 60, 10)}px`;
+                    label.style.left = `50%`;
+                    label.style.top = `50%`;
+                    label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${angle + 90}deg)`;
+                    label.style.opacity = Math.max(0.4, 0.8 - (i * 0.1));
+                    label.style.zIndex = 200 - i;
+                    label.style.filter = 'brightness(1.1) contrast(1.1)';
+                    
+                    this.elements.labelsStack.appendChild(label);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new LabelRollGenerator();
+        });
+    </script>
+</body>
+</html>
